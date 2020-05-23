@@ -5,6 +5,7 @@ import os
 import urllib
 import zipfile
 import random
+import pdb
 import torchtext
 from torchtext.vocab import Vectors
 
@@ -56,7 +57,7 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
     UTTERANCE = torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
     SPEAKER = torchtext.data.Field(sequential=False, use_vocab=True)
     CONTEXT_ALL = torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
-    LABEL = torchtext.data.Field(sequential=False, use_vocab=False, preprocessing=lambda l: 0 if l == 'True' else 1, is_target=True)
+    LABEL = torchtext.data.Field(sequential=False, use_vocab=False, preprocessing=lambda l: 0 if l=='TRUE' else 1, is_target=True)
    #  CONTEXT1 =  torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
    #  CONTEXT2 =  torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
    #  CONTEXT3 =  torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
@@ -72,9 +73,9 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
 
     ds = torchtext.data.TabularDataset(
         path='./MUStARD/sarcasm_data.csv', format='csv',
-        fields=[("id", ID),
+        fields=[("id", None),
                 ("utterance", UTTERANCE),
-                ("speaker", SPEAKER),
+                ("speaker", None),
                 ("context_all", CONTEXT_ALL),
                 ("label", LABEL)],
                 skip_header=True)
@@ -99,23 +100,25 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
     # 普通のbuild_vocab
     # UTTERANCE.build_vocab(ds, vectors=english_fasttext_vectors, min_freq=1)
     # CONTEXT_ALL.build_vocab(ds, vectors=english_fasttext_vectors, min_freq=1)
+    # LABEL.build_vocab()
 
     # ボキャブラリーのベクトルを確認
     print(UTTERANCE.vocab.vectors.shape)
     print(UTTERANCE.vocab.vectors)
 
     # ボキャブラリーの単語の順番を確認
-    print(CONTEXT_ALL.vocab.stoi)
+    # print(CONTEXT_ALL.vocab.stoi)
 
     # make dataloader
     train_dl = torchtext.data.Iterator(train_ds, batch_size=24, train=True)
     val_dl = torchtext.data.Iterator(val_ds, batch_size=24, train=False, sort=False)
     test_dl = torchtext.data.Iterator(test_ds, batch_size=24, train=False, sort=False)
 
-    # test   val dataで確認
-    batch = next(iter(val_dl))
-    print(batch.Text)
-    print(batch.Label)
+    # pdb.set_trace()
+    # test   train_dataで確認
+    batch = next(iter(train_dl))
+    print(batch.utterance)
+    print(batch.label)
 
 
 if __name__ == '__main__':
