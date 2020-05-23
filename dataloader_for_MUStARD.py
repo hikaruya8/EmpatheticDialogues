@@ -73,9 +73,9 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
 
     ds = torchtext.data.TabularDataset(
         path='./MUStARD/sarcasm_data.csv', format='csv',
-        fields=[("id", None),
+        fields=[("id", ID),
                 ("utterance", UTTERANCE),
-                ("speaker", None),
+                ("speaker", SPEAKER),
                 ("context_all", CONTEXT_ALL),
                 ("label", LABEL)],
                 skip_header=True)
@@ -100,7 +100,7 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
     # 普通のbuild_vocab
     # UTTERANCE.build_vocab(ds, vectors=english_fasttext_vectors, min_freq=1)
     # CONTEXT_ALL.build_vocab(ds, vectors=english_fasttext_vectors, min_freq=1)
-    # LABEL.build_vocab()
+    SPEAKER.build_vocab(ds)
 
     # ボキャブラリーのベクトルを確認
     # print(UTTERANCE.vocab.vectors.shape)
