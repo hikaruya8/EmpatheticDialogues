@@ -81,15 +81,15 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
                 skip_header=True)
 
     # test dataloader
-    print(f'データ数{len(ds)}')
-    print(f'1つ目のデータ{vars(ds[1])}')
+    # print(f'データ数{len(ds)}')
+    # print(f'1つ目のデータ{vars(ds[1])}')
 
     # dsをtrain, val, testに分ける. ランダムに8:1:1 で分ける
     train_ds, val_ds, test_ds = ds.split(split_ratio=[0.8, 0.1, 0.1], random_state=random.seed(1234))
 
     # test split
-    print(f'train dataの数:{len(train_ds)}, validataion dataの数:{len(val_ds)}, test dataの数: {len(test_ds)}')
-    print(f'1つ目のデータ{vars(train_ds[1])}')
+    # print(f'train dataの数:{len(train_ds)}, validataion dataの数:{len(val_ds)}, test dataの数: {len(test_ds)}')
+    # print(f'1つ目のデータ{vars(train_ds[1])}')
 
 
     english_fasttext_vectors = Vectors(name='data/wiki-news-300d-1M.vec')
@@ -103,8 +103,8 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
     # LABEL.build_vocab()
 
     # ボキャブラリーのベクトルを確認
-    print(UTTERANCE.vocab.vectors.shape)
-    print(UTTERANCE.vocab.vectors)
+    # print(UTTERANCE.vocab.vectors.shape)
+    # print(UTTERANCE.vocab.vectors)
 
     # ボキャブラリーの単語の順番を確認
     # print(CONTEXT_ALL.vocab.stoi)
@@ -114,11 +114,10 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
     val_dl = torchtext.data.Iterator(val_ds, batch_size=24, train=False, sort=False)
     test_dl = torchtext.data.Iterator(test_ds, batch_size=24, train=False, sort=False)
 
-    # pdb.set_trace()
     # test   train_dataで確認
-    batch = next(iter(train_dl))
-    print(batch.utterance)
-    print(batch.label)
+    # batch = next(iter(train_dl))
+    # print(batch.utterance)
+    # print(batch.label)
 
 
 if __name__ == '__main__':
