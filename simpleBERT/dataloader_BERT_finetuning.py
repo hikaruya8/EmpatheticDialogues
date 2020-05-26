@@ -1,13 +1,20 @@
 import random
+import numpy as np
+import torch
 import torchtext
 from transformers import BertTokenizer
+
+torch.manual_seed(42)
+np.random.seed(42)
+random.seed(42)
+pre_trained_weights = 'bert-base-uncased'
 
 def get_utterance_and_context_loader(max_length=256, batch_size=32):
     max_length = max_length
     batch_size = batch_size
 
     # torchtext用にBertTokenizerの準備
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    tokenizer = BertTokenizer.from_pretrained(pre_trained_weights)
     pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
     eos_index = tokenizer.convert_tokens_to_ids(tokenizer.eos_token)
     unk_index = tokenizer.convert_tokens_to_ids(tokenizer.unk_token)
@@ -49,7 +56,7 @@ def get_utterance_and_context_loader(max_length=256, batch_size=32):
     # print(f'1つ目のデータ{vars(ds[1])}')
 
     # dsをtrain, val, testに分ける. ランダムに8:1:1 で分ける
-    train_ds, val_ds, test_ds = ds.split(split_ratio=[0.8, 0.1, 0.1], random_state=random.seed(1234))
+    train_ds, val_ds, test_ds = ds.split(split_ratio=[0.8, 0.1, 0.1], random_state=random.seed(42))
 
     # test split
     # print(f'train dataの数:{len(train_ds)}, validataion dataの数:{len(val_ds)}, test dataの数: {len(test_ds)}')
@@ -65,6 +72,7 @@ def get_utterance_and_context_loader(max_length=256, batch_size=32):
     # print(batch.utterance)
     # print(batch.label)
 
+    return train_dl, val_dl, test_dl
 
 if __name__ == '__main__':
     get_utterance_and_context_loader()
