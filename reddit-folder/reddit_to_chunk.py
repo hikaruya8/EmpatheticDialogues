@@ -40,13 +40,19 @@ class RedditDataset(Dataset):
         self._total_data = int(subprocess.check_output("wc -l " + filename, shell=True).split()[0])
 
     def __getitem__(self, idx):
-        line = linecache.getline(self._filename, idx + 1)
-        csv_line = csv.reader([line])
-        return next(csv_line)
+        with open(self._filename) as f:
+            return json.loads(f.readline())
+        # line = linecache.getline(self._filename, idx + 1)
+        # return line
+        # csv_line = csv.reader(line)
+        # return next(csv_line)
 
     def __len__(self):
         return self._total_data
 
 
+
+
 if __name__ == '__main__':
     test_data = RedditDataset('./raw_data')
+    ipdb.set_trace()
