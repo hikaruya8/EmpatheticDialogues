@@ -1,8 +1,9 @@
 import random
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader
-from torchtext import data
+# from torch.utils.data import Dataset, DataLoader
+from torchtext.data import Dataset, TabularDataset
+# from torchtext import data
 import json
 import os
 import subprocess
@@ -42,6 +43,7 @@ class RedditDataset(Dataset):
     def __getitem__(self, idx):
         with open(self._filename) as f:
             return json.loads(f.readline())['body']
+            # 毎回lineの最初がloadされるので修正必要
         # line = linecache.getline(self._filename, idx + 1)
         # return line
         # csv_line = csv.reader(line)
@@ -51,6 +53,13 @@ class RedditDataset(Dataset):
         return self._total_data
 
 
+
+# def get_sentences_from_reddit_dataset(max_length=256, batch_size=64):
+#     max_length = max_length
+#     batch_size = batch_size
+
+#     dataset = TabularDataset(
+#         path='/chunk000.pth'), format=json)
 # with open(reddit_file) as f:
 #     data = json.loads(f.readline())
 #     ipdb.set_trace()
