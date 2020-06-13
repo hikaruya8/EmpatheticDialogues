@@ -41,7 +41,7 @@ class RedditDataset(Dataset):
 
     def __getitem__(self, idx):
         with open(self._filename) as f:
-            return json.loads(f.readline())
+            return json.loads(f.readline())['body']
         # line = linecache.getline(self._filename, idx + 1)
         # return line
         # csv_line = csv.reader(line)
@@ -51,8 +51,14 @@ class RedditDataset(Dataset):
         return self._total_data
 
 
+# with open(reddit_file) as f:
+#     data = json.loads(f.readline())
+#     ipdb.set_trace()
+
+
+
 
 
 if __name__ == '__main__':
-    test_data = RedditDataset('./raw_data')
+    test_data = RedditDataset('./chunk000.pth')
     ipdb.set_trace()
