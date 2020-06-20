@@ -1,9 +1,10 @@
 import random
 import numpy as np
 import torch
+import torchtext.utils
 # from torch.utils.data import Dataset, DataLoader
 from torchtext.data import Dataset, TabularDataset
-# from torchtext import data
+from torchtext import data
 import json
 import os
 import subprocess
@@ -27,12 +28,6 @@ reddit_file = './raw_data'
 #                 json.dump(o[i:i+chunk_size], outfile)
 
 
-# def get_reddit_dic():
-#     BODY = data.Field(sequential=True, batch_first=True)
-#     ds = data.TabularDataset(
-#         path='./raw_data', format='json',
-#         fields={"body": ("body",BODY)})
-
 
 class RedditDataset(Dataset):
     def __init__(self, filename):
@@ -53,21 +48,23 @@ class RedditDataset(Dataset):
         return self._total_data
 
 
+def get_reddit_dic():
+    BODY = data.Field(sequential=True, batch_first=True)
+    fields = {'body': ('body', BODY)}
+    ds = data.TabularDataset(
+        path='./chunk000.pth', format='json',
+        fields=fields)
 
-# def get_sentences_from_reddit_dataset(max_length=256, batch_size=64):
-#     max_length = max_length
-#     batch_size = batch_size
+    # test dataloader
+    print(f'データ数{len(ds)}')
+    print(f'1つ目のデータ{vars(ds[0])}')
+    ipdb.set_trace()
 
-#     dataset = TabularDataset(
-#         path='/chunk000.pth'), format=json)
-# with open(reddit_file) as f:
-#     data = json.loads(f.readline())
-#     ipdb.set_trace()
 
 
 
 
 
 if __name__ == '__main__':
-    test_data = RedditDataset('./chunk000.pth')
-    ipdb.set_trace()
+    # test_data = RedditDataset('./chunk000.pth')
+    get_reddit_dic()
