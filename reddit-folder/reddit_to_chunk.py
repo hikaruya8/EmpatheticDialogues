@@ -1,11 +1,13 @@
 import random
 import numpy as np
 import torch
-import torchtext.utils
 # from torch.utils.data import Dataset, DataLoader
 from torchtext.data import Dataset, TabularDataset
 from torchtext import data
+from torchtext.vocab import Vectors
 import json
+import pickle
+import string
 import os
 import subprocess
 import linecache
@@ -48,17 +50,65 @@ class RedditDataset(Dataset):
         return self._total_data
 
 
-def get_reddit_dic():
-    BODY = data.Field(sequential=True, batch_first=True)
-    fields = {'body': ('body', BODY)}
+def preprocessing_text(text):
+    # カンマ、ピリオド以外の記号をスペースに置換
+    for p in string.punctuation:
+        if (p == ".") or (p == ","):
+            continue
+        else:
+            text = text.replace(p, " ")
+
+        # ピリオドなどの前後にはスペースを入れておく
+        text = text.replace(".", " . ")
+        text = text.replace(",", " , ")
+
+        return text
+
+# 分かち書き
+def tokenizer_punctuation(text):
+    return text.strip().split()
+
+# 前処理と分かち書きをまとめる
+def tokenizer_with_preprocessing(text):
+    text = preprocessing_text(text)
+    ret = tokenizer_punctuation(text)
+    return ret
+
+
+def get_reddit_dic(file_path, max_length=256, batch_size=64):
+    W = data.Field(
+        sequential=True, tokenize=tokenizer_with_preprocessing, lower=True, use_vocab=False, include_lengths=True, batch_first=True, fix_length=max_length, init_token='cstart', eos_token='cend')
+    fields = {'body': ('w', W)}
     ds = data.TabularDataset(
-        path='./chunk000.pth', format='json',
+        path=file_path, format='json',
         fields=fields)
 
     # test dataloader
     print(f'データ数{len(ds)}')
     print(f'1つ目のデータ{vars(ds[0])}')
-    ipdb.set_trace()
+
+    vectors = Vectors(name='../crawl-300d-2M.vec')
+    W.build_vocab(ds, vectors=vectors)
+    print(W.vocab.vectors.shape)
+    # print(W.vocab.vectors)
+    # print(W.vocab.stoi)
+
+    '''
+    words: dict with words as keys and word idxs as tokens
+    iwords: list of words in order (where the index of each word is given by words, above)
+    wordcounts: 1D Tensor indexed the same way as iwords, where each value is the frequency of that word in the corpus
+    '''
+    words = W.vocab.stoi
+    iwords = W.vocab.itos
+    wordcounts = [v for v in dict.values(W.vocab.freqs)]
+
+    word_dictionary = json.dumps([words, iwords, wordcounts])
+
+
+    with open('./word_dictionary', mode='w') as f:
+        json.dump(word_dictionary, f, indent=4, ensure_ascii=False)
+
+
 
 
 
@@ -67,4 +117,5 @@ def get_reddit_dic():
 
 if __name__ == '__main__':
     # test_data = RedditDataset('./chunk000.pth')
-    get_reddit_dic()
+    file_path='./chunk000.pth'
+    get_reddit_dic(file_path=file_path)
