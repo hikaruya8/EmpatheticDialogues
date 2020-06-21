@@ -101,16 +101,20 @@ def get_reddit_dic(file_path, max_length=256, batch_size=64):
     words = W.vocab.stoi
     iwords = W.vocab.itos
     wordcounts = [v for v in dict.values(W.vocab.freqs)]
+    word_dictionary = {}
+    word_dictionary['words'] = words
+    word_dictionary['iwords'] = iwords
+    word_dictionary['wordcounts'] = wordcounts
 
-    word_dictionary = json.dumps([words, iwords, wordcounts])
+    # with open('./word_dictionary', mode='w') as f:
+    #     json.dump(word_dictionary)
+    with open('./word_dictionary', mode='wb') as f:
+        torch.save(word_dictionary, f)
 
+    # with open('./word_dictionary', mode='r') as f:
+    #     update_dict = json.load(f)
 
-    with open('./word_dictionary', mode='w') as f:
-        json.dump(word_dictionary, f, indent=4, ensure_ascii=False)
-
-
-
-
+    # ipdb.set_trace()
 
 
 
