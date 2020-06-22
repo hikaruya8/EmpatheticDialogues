@@ -4,6 +4,7 @@ import torch
 import numpy as np
 import random
 from argparse import ArgumentParser
+from sklearn.metrics import recall_score, precision_score
 
 from model_BERT_finetuning import make_model
 from dataloader_BERT_finetuning import get_utterance_and_context_loader
@@ -72,12 +73,19 @@ def train_model(model, train_dl, val_dl, num_epochs, batch_size):
 
             print('Epoch {}/{} | {:^5} | Loss:{:.4f} Acc:{:.4f}'.format(epoch+1, num_epochs, phase, epoch_loss, epoch_acc))
 
+    # save model
+    torch.save(model.state_dict(), 'weights/bert_finetuned_trainded.pth')
+
     return model
 
 
 def eval_model(model_trained, test_dl):
     model_trained.to(device)
     epoch_corrects = 0
+    true_positive = 0
+    false_negative = 0
+    false_positive = 0
+    true_negative = 0
 
     for batch in (test_dl):
         inputs = batch.utterance[0].to(device)
@@ -91,11 +99,22 @@ def eval_model(model_trained, test_dl):
             _, preds = torch.max(logits, 1)
             epoch_corrects += torch.sum(preds == labels.data)
 
-    epoch_acc = epoch_corrects.double() / len(test_dl.dataset)
-    print('Correct rate {} records : {:.4f}'.format(len(test_dl.dataset), epoch_acc))
+            curr_corrects = (torch.sum(preds==labels.data)).to('cpu').numpy()
+            for p,l in zip(preds, labels.data):
+                if p==1 and l==1: #preds==sarcasm and labels.data==sarcasm
+                    true_positive += 1
+                elif p==0 and l==0: #preds==non-sarcasm and labels.data==sarcasm
+                    false_negative += 1
+                elif p==1 and l==0: #preds==sarcasm and labels.data==non-sarcasm
+                    false_positive += 1
+                else: #preds==non-sarcasm and labels.data==non-sarcasm
+                    true_negative += 1
 
-    # save model
-    torch.save(model_trained.state_dict(), 'weights/bert_finetuned_trainded.pth')
+    epoch_acc = epoch_corrects.double() / len(test_dl.dataset)
+    recall_avg = true_positive / (true_positive + false_negative)
+    precision_avg = true_positive / (true_positive + false_positive)
+    f1_score = (2*recall_avg * precision_avg) / (recall_avg + precision_avg)
+    print('Correct rate {} acc: {:.4f} recall: {:.4f} precision: {:.4f}: f1_score: {:.4f}'.format(len(test_dl.dataset), epoch_acc, recall_avg, precision_avg, f1_score))
 
 if __name__ == '__main__':
     torch.manual_seed(42)
