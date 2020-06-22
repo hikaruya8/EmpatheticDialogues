@@ -54,9 +54,9 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
     batch_size = batch_size
 
     ID = torchtext.data.Field(sequential=False, use_vocab=False)
-    UTTERANCE = torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
+    UTTERANCE = torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>", pad_token="<pad>", unk_token="<unk>")
     SPEAKER = torchtext.data.Field(sequential=False, use_vocab=True)
-    CONTEXT_ALL = torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
+    CONTEXT_ALL = torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>", pad_token="<pad>", unk_token="<unk>")
     LABEL = torchtext.data.Field(sequential=False, use_vocab=False, preprocessing=lambda l: 0 if l=='TRUE' else 1, is_target=True)
    #  CONTEXT1 =  torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
    #  CONTEXT2 =  torchtext.data.Field(sequential=True, tokenize=tokenizer_with_preprocessing, use_vocab=True, lower=True, include_lengths=True, batch_first=True, fix_length=max_length, init_token="<cls>", eos_token="<eos>")
@@ -115,9 +115,9 @@ def get_utterance_and_context_loader(max_length=256, batch_size=64):
     test_dl = torchtext.data.Iterator(test_ds, batch_size=24, train=False, sort=False)
 
     # test   train_dataで確認
-    # batch = next(iter(train_dl))
-    # print(batch.utterance)
-    # print(batch.label)
+    batch = next(iter(train_dl))
+    print(batch.utterance)
+    print(batch.label)
 
 
 if __name__ == '__main__':
