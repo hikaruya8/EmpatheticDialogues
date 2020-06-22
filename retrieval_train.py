@@ -281,8 +281,11 @@ def main(opt_):
             validate(
                 0, net, test_data, is_test=True, nb_candidates=opt_.hits_at_nb_cands
             )
+        return net
     else:
         train_model(opt_)
+
+    # return net
 
 
 if __name__ == "__main__":
@@ -294,4 +297,9 @@ if __name__ == "__main__":
         torch.cuda.manual_seed(opt.random_seed)
     # Set logging
     logger = get_logger(opt)
-    main(opt)
+    # main(opt)
+
+    # 無理矢理model save
+    model = main(opt)
+    raw_model_path = './raw_model/bert.pth'
+    torch.save(model, raw_model_path)
