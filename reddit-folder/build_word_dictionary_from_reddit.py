@@ -1,24 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import random
 import numpy as np
 import torch
-# from torch.utils.data import Dataset, DataLoader
-from torchtext.data import Dataset, TabularDataset
 from torchtext import data
 from torchtext.vocab import Vectors
 import json
-import pickle
 import string
 import os
-import subprocess
-import linecache
-import csv
-import ipdb
 
-torch.manual_seed(42)
 np.random.seed(42)
 random.seed(42)
-
-reddit_file = './raw_data'
 
 # def make_chunk_from_reddit():
 #     with open('./raw_data', 'r') as infile:
@@ -30,24 +23,20 @@ reddit_file = './raw_data'
 #                 json.dump(o[i:i+chunk_size], outfile)
 
 
+# # make my dataset
+# class RedditDataset(data.Dataset):
+#     def __init__(self, filename):
+#         self._filename = filename
+#         self._total_data = 0
+#         self._total_data = int(subprocess.check_output("wc -l " + filename, shell=True).split()[0])
 
-class RedditDataset(Dataset):
-    def __init__(self, filename):
-        self._filename = filename
-        self._total_data = 0
-        self._total_data = int(subprocess.check_output("wc -l " + filename, shell=True).split()[0])
+#     def __getitem__(self, idx):
+#         with open(self._filename) as f:
+#             return json.loads(f.readline())['body']
+#             # 毎回lineの最初がloadされるので修正必要
 
-    def __getitem__(self, idx):
-        with open(self._filename) as f:
-            return json.loads(f.readline())['body']
-            # 毎回lineの最初がloadされるので修正必要
-        # line = linecache.getline(self._filename, idx + 1)
-        # return line
-        # csv_line = csv.reader(line)
-        # return next(csv_line)
-
-    def __len__(self):
-        return self._total_data
+#     def __len__(self):
+#         return self._total_data
 
 
 def preprocessing_text(text):
@@ -84,12 +73,12 @@ def get_reddit_dic(file_path, max_length=256, batch_size=64):
         fields=fields)
 
     # test dataloader
-    print(f'データ数{len(ds)}')
-    print(f'1つ目のデータ{vars(ds[0])}')
+    # print(f'データ数{len(ds)}')
+    # print(f'1つ目のデータ{vars(ds[0])}')
 
     vectors = Vectors(name='../crawl-300d-2M.vec')
     W.build_vocab(ds, vectors=vectors)
-    print(W.vocab.vectors.shape)
+    # print(W.vocab.vectors.shape)
     # print(W.vocab.vectors)
     # print(W.vocab.stoi)
 
@@ -106,20 +95,14 @@ def get_reddit_dic(file_path, max_length=256, batch_size=64):
     word_dictionary['iwords'] = iwords
     word_dictionary['wordcounts'] = wordcounts
 
-    # with open('./word_dictionary', mode='w') as f:
-    #     json.dump(word_dictionary)
     with open('./word_dictionary', mode='wb') as f:
         torch.save(word_dictionary, f)
-
-    # with open('./word_dictionary', mode='r') as f:
-    #     update_dict = json.load(f)
-
-    # ipdb.set_trace()
-
-
 
 
 if __name__ == '__main__':
     # test_data = RedditDataset('./chunk000.pth')
-    file_path='./chunk000.pth'
+    ```
+    # test with chunked reddit data
+    # file_path='./chunk000.pth'
+    file_path = './raw_data'
     get_reddit_dic(file_path=file_path)
