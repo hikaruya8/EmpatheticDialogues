@@ -5,24 +5,29 @@ from empchat.util import get_opt
 import ipdb
 
 
-pretrained_state_dict = torch.load('./normal_transformer_finetuned.mdl')
-opt = pretrained_state_dict['opt']
-word_dict = pretrained_state_dict['word_dict']
+pretrained_params = torch.load('./normal_transformer_pretrained.mdl')
+pretrained_state_dict = pretrained_params['state_dict']
+pretrained_opt = pretrained_params['opt']
+pretrained_word_dict = pretrained_params['word_dict']['words']
 
-ipdb.set_trace()
 
-# opt = get_opt()
-# word_dict = torch.load('./reddit_data/word_dictionary')
-# model = TransformerAdapter(opt, word_dict)
-# model = TransformerAdapter(pretrained_state_dict['opt'], pretrained_state_dict['word_dict']['words'])
-# model = torch.load('./raw_model/bert.pth')
+finetuned_params = torch.load('./normal_transformer_finetuned.mdl')
+finetuned_state_dict = finetuned_params['state_dict']
+finetuned_opt = finetuned_params['opt']
+finetuned_word_dict = finetuned_params['word_dict']['words']
+finetuned_optim_dict = finetuned_params['optim_dict']
 
-model = torch.load('raw_model/finetune_model.pth')
 
-ipdb.set_trace()
+pretrained_model = TransformerAdapter(pretrained_opt, pretrained_word_dict)
+finetuned_model = TransformerAdapter(finetuned_opt, finetuned_word_dict)
 
-state_dict = model.load_state_dict(torch.load('./normal_transformer_finetuned.mdl'))
-my_state_dict = model.load_state_dict(torch.load('./transformer_finetuning_train_save_folder/model.mdl'))
-# model_txt = torch.load('../../EmpatheticDialogues/transformer_finetuning_train_save_folder/model.txt')
 
-ipdb.set_trace()
+
+def create_finetune_model():
+
+
+
+
+if __name__ == '__main__':
+    create_finetune_model()
+    ipdb.set_trace()
