@@ -47,14 +47,23 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
         sequential=True, tokenize=tokenizer_with_preprocessing, lower=True, use_vocab=False, include_lengths=True, batch_first=True, fix_length=max_length, init_token='cstart', eos_token='cend')
     UID =data.Field(
         sequential=False)
-    P2C =data.Field(
+    LID =data.Field(
+        sequential=False)
+    PID =data.Field(
         sequential=False)
     fields = {'body': ('w', W),
-                'id': ('uid', UID)}
+                'id': ('uid', UID),
+                'link_id': ('lid', LID),
+                'parent_id': ('pid', PID)}
 
     chunk_num = 1000
     chunk_id = 998
     chunked_ds = [''] * chunk_num
+
+    # with open ('../reddit_raw_data_folder/chunk999.pth') as f:
+    #     line = f.readline()
+    #     ipdb.set_trace()
+
 
     with tqdm() as pbar:
         while chunk_id < chunk_num:
@@ -82,14 +91,15 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             chunked_word_dictionary = {}
             chunked_word_dictionary["w"] = [x for x in chunked_ds[chunk_id].w]
             chunked_word_dictionary["uid"] = [x for x in chunked_ds[chunk_id].uid]
-            chunked_word_dictionary["p2c"] = chunked_word_dictionary["uid"][:-1]
+            chunked_word_dictionary["lid"] = [x for x in chunked_ds[chunk_id].lid]
+            chunked_word_dictionary["pid"] = [x for x in chunked_ds[chunk_id].pid]
             chunked_word_dictionary["cstart"] = [x for x in chunked_ds[chunk_id].cstart]
             chunked_word_dictionary["cend"] = [x for x in chunked_ds[chunk_id].cend]
             chunked_word_dictionary["words"] = words
             chunked_word_dictionary["iwords"] = iwords
             chunked_word_dictionary["wordcounts"] = wordcounts
 
-            # ipdb.set_trace()
+            ipdb.set_trace()
 
             with open(os.path.join(f'./chunk{chunk_zero_fill}.pth'), mode='wb') as f:
                 torch.save(chunked_word_dictionary, f)
