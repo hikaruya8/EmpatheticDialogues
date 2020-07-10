@@ -9,12 +9,14 @@ import json
 import string
 import os
 
+from transformers import BertTokenizer
 import time
 from tqdm import tqdm
 import ipdb
 
 np.random.seed(42)
 random.seed(42)
+pre_trained_weights = 'bert-base-uncased'
 
 def preprocessing_text(text):
     # カンマ、ピリオド以外の記号をスペースに置換
@@ -41,9 +43,26 @@ def tokenizer_with_preprocessing(text):
     return ret
 
 
+import collections
+def flatten(l):
+    for el in l:
+        if isinstance(el, collections.Iterable) and not isinstance(el, (str, bytes)):
+            yield from flatten(el)
+        else:
+            yield el
+
+
 def convert_raw_reddit_to_chunk_files(max_length=100):
-    W = data.Field(
-        sequential=True, tokenize=tokenizer_with_preprocessing, lower=True, use_vocab=False, include_lengths=True, batch_first=True, fix_length=max_length, init_token='cstart', eos_token='cend')
+    # torchtext用にBertTokenizerの準備
+    tokenizer = BertTokenizer.from_pretrained(pre_trained_weights)
+    pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
+    # eos_index = tokenizer.convert_tokens_to_ids(tokenizer.eos_token)
+    unk_index = tokenizer.convert_tokens_to_ids(tokenizer.unk_token)
+    mask_index = tokenizer.convert_tokens_to_ids(tokenizer.mask_token)
+    cls_index = tokenizer.convert_tokens_to_ids(tokenizer.cls_token)
+    # sep_index = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
+
+    W = data.Field(sequential=True, tokenize=tokenizer.tokenize, use_vocab=False, include_lengths=True, batch_first=True, fix_length=max_length, init_token=cls_index, pad_token=pad_index, unk_token=unk_index)
     UID =data.Field(
         sequential=False)
     LID =data.Field(
@@ -73,8 +92,8 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
                 format='json',
                 fields=fields)
 
-            vectors = Vectors(name='../crawl-300d-2M.vec')
-            W.build_vocab(chunked_ds[chunk_id], vectors=vectors)
+            # vectors = Vectors(name='../crawl-300d-2M.vec')
+            # W.build_vocab(chunked_ds[chunk_id], vectors=vectors)
             # print(W.vocab.vectors.shape)
             # print(W.vocab.vectors)
             # print(W.vocab.stoi)
@@ -84,12 +103,19 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             iwords: list of words in order (where the index of each word is given by words, above)
             wordcounts: 1D Tensor indexed the same way as iwords, where each value is the frequency of that word in the corpus
             '''
+            W.build_vocab(chunked_ds[chunk_id], min_freq=0)
+            W.vocab.stoi = tokenizer.vocab
             words = W.vocab.stoi
-            iwords = W.vocab.itos
-            wordcounts = [v for v in dict.values(W.vocab.freqs)]
+            iwords = list(words.keys())
+            wordcounts = torch.IntTensor([v for v in dict.values(W.vocab.freqs)])
+
+            ipdb.set_trace()
 
             chunked_word_dictionary = {}
+            # word_list = [x for x in chunked_ds[chunk_id].w]
+            # chunked_word_dictionary["w"] = list(flatten(word_list))
             chunked_word_dictionary["w"] = [x for x in chunked_ds[chunk_id].w]
+            chunked_word_dictionary["word_list"] = [tokenizer.encode(x) for x in chunked_word_dictionary["w"]]
             chunked_word_dictionary["uid"] = [x for x in chunked_ds[chunk_id].uid]
             chunked_word_dictionary["lid"] = [x for x in chunked_ds[chunk_id].lid]
             chunked_word_dictionary["pid"] = [x for x in chunked_ds[chunk_id].pid]
@@ -97,10 +123,12 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             chunked_word_dictionary["words"] = words
             chunked_word_dictionary["iwords"] = iwords
             chunked_word_dictionary["wordcounts"] = wordcounts
-            start_char = [x[0] for x in chunked_ds[chunk_id].w if x]
-            end_char = [x[-1] for x in chunked_ds[chunk_id].w if x]
+            start_char = [x[0] for x in chunked_word_dictionary["word_list"] if x]
+            end_char = [x[-1] for x in chunked_word_dictionary["word_list"] if x]
             chunked_word_dictionary["cstart"] = [words[x] for x in start_char]
             chunked_word_dictionary["cend"] = [words[x] for x in end_char]
+
+            ipdb.set_trace()
 
             for cp in tqdm(chunked_word_dictionary["pid"]):
                 if cp not in chunked_word_dictionary["lid"]:
