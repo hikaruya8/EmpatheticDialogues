@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import random
 import numpy as np
 import torch
@@ -57,12 +56,13 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
                 'parent_id': ('pid', PID)}
 
     chunk_num = 1000
-    chunk_id = 998
+    chunk_id = 999
     chunked_ds = [''] * chunk_num
 
     # with open ('../reddit_raw_data_folder/chunk999.pth') as f:
-    #     line = f.readline()
-    #     ipdb.set_trace()
+    #     for line in f:
+    #         print(line)
+    #         ipdb.set_trace()
 
 
     with tqdm() as pbar:
@@ -75,7 +75,7 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
 
             vectors = Vectors(name='../crawl-300d-2M.vec')
             W.build_vocab(chunked_ds[chunk_id], vectors=vectors)
-            print(W.vocab.vectors.shape)
+            # print(W.vocab.vectors.shape)
             # print(W.vocab.vectors)
             # print(W.vocab.stoi)
 
@@ -93,17 +93,28 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             chunked_word_dictionary["uid"] = [x for x in chunked_ds[chunk_id].uid]
             chunked_word_dictionary["lid"] = [x for x in chunked_ds[chunk_id].lid]
             chunked_word_dictionary["pid"] = [x for x in chunked_ds[chunk_id].pid]
-            chunked_word_dictionary["cstart"] = [x for x in chunked_ds[chunk_id].cstart]
-            chunked_word_dictionary["cend"] = [x for x in chunked_ds[chunk_id].cend]
+            chunked_word_dictionary["p2c"] = []
             chunked_word_dictionary["words"] = words
             chunked_word_dictionary["iwords"] = iwords
             chunked_word_dictionary["wordcounts"] = wordcounts
+            start_char = [x[0] for x in chunked_ds[chunk_id].w if x]
+            end_char = [x[-1] for x in chunked_ds[chunk_id].w if x]
+            chunked_word_dictionary["cstart"] = [words[x] for x in start_char]
+            chunked_word_dictionary["cend"] = [words[x] for x in end_char]
 
-            ipdb.set_trace()
+            for cp in tqdm(chunked_word_dictionary["pid"]):
+                if cp not in chunked_word_dictionary["lid"]:
+                    chunked_word_dictionary["p2c"].append(-1)
+
+                else:
+                    parent_id = chunked_word_dictionary['lid'].index(cp)
+                    chunked_word_dictionary["p2c"].append(parent_id)
+
+            chunked_word_dictionary["p2c"] = torch.ByteTensor(chunked_word_dictionary["p2c"])
+
 
             with open(os.path.join(f'./chunk{chunk_zero_fill}.pth'), mode='wb') as f:
                 torch.save(chunked_word_dictionary, f)
-
 
             time.sleep(0.05)
             pbar.update(1)
@@ -112,8 +123,9 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
 
 
 def check_word_dictionary():
-    word_dictionary = torch.load('./word_dictionary')
+    word_dictionary = torch.load('./chunk999.pth')
     ipdb.set_trace()
 
 if __name__ == '__main__':
     convert_raw_reddit_to_chunk_files()
+    # check_word_dictionary()
