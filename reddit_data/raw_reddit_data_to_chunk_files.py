@@ -62,7 +62,7 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
     cls_index = tokenizer.convert_tokens_to_ids(tokenizer.cls_token)
     # sep_index = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
 
-    W = data.Field(sequential=True, tokenize=tokenizer.tokenize, use_vocab=False, include_lengths=True, batch_first=True, fix_length=max_length, init_token=cls_index, pad_token=pad_index, unk_token=unk_index)
+    W = data.Field(sequential=True, tokenize=tokenizer.encode, use_vocab=False, include_lengths=True, batch_first=True, fix_length=max_length, init_token=cls_index, pad_token=pad_index, unk_token=unk_index)
     UID =data.Field(
         sequential=False)
     LID =data.Field(
@@ -107,12 +107,12 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             W.vocab.stoi = tokenizer.vocab
             words = W.vocab.stoi
             iwords = list(words.keys())
-            wordcounts = torch.IntTensor([v for v in dict.values(W.vocab.freqs)])
+            wordcounts = torch.ByteTensor([v for v in dict.values(W.vocab.freqs)])
 
             chunked_word_dictionary = {}
-            # word_list = [x for x in chunked_ds[chunk_id].w]
-            # chunked_word_dictionary["w"] = list(flatten(word_list))
-            chunked_word_dictionary["w"] = [x for x in chunked_ds[chunk_id].w]
+            word_list = [x for x in chunked_ds[chunk_id].w]
+            chunked_word_dictionary["w"] = torch.ByteTensor(list(flatten(word_list)))
+            # chunked_word_dictionary["w"] = [x for x in chunked_ds[chunk_id].w]
             chunked_word_dictionary["uid"] = [x for x in chunked_ds[chunk_id].uid]
             chunked_word_dictionary["lid"] = [x for x in chunked_ds[chunk_id].lid]
             chunked_word_dictionary["pid"] = [x for x in chunked_ds[chunk_id].pid]
@@ -120,10 +120,12 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             chunked_word_dictionary["words"] = words
             chunked_word_dictionary["iwords"] = iwords
             chunked_word_dictionary["wordcounts"] = wordcounts
-            start_char = [x[0] for x in chunked_word_dictionary["w"] if x]
-            end_char = [x[-1] for x in chunked_word_dictionary["w"] if x]
-            chunked_word_dictionary["cstart"] = tokenizer.encode(start_char)
-            chunked_word_dictionary["cend"] = tokenizer.encode(end_char)
+            chunked_word_dictionary["cstart"] = torch.ByteTensor([x[1] for x in word_list if x])
+            chunked_word_dictionary["cend"] = torch.ByteTensor([x[-2] for x in word_list if x])
+            # start_char = [x[0] for x in chunked_word_dictionary["w"] if x]
+            # end_char = [x[-1] for x in chunked_word_dictionary["w"] if x]
+            # chunked_word_dictionary["cstart"] = tokenizer.encode(start_char)
+            # chunked_word_dictionary["cend"] = tokenizer.encode(end_char)
 
             for cp in tqdm(chunked_word_dictionary["pid"]):
                 if cp not in chunked_word_dictionary["lid"]:
@@ -134,6 +136,8 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
                     chunked_word_dictionary["p2c"].append(parent_id)
 
             chunked_word_dictionary["p2c"] = torch.ByteTensor(chunked_word_dictionary["p2c"])
+
+            # ipdb.set_trace()
 
             with open(os.path.join(f'./chunk{chunk_zero_fill}.pth'), mode='wb') as f:
                 torch.save(chunked_word_dictionary, f)
