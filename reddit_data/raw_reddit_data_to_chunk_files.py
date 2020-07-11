@@ -109,13 +109,10 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             iwords = list(words.keys())
             wordcounts = torch.IntTensor([v for v in dict.values(W.vocab.freqs)])
 
-            ipdb.set_trace()
-
             chunked_word_dictionary = {}
             # word_list = [x for x in chunked_ds[chunk_id].w]
             # chunked_word_dictionary["w"] = list(flatten(word_list))
             chunked_word_dictionary["w"] = [x for x in chunked_ds[chunk_id].w]
-            chunked_word_dictionary["word_list"] = [tokenizer.encode(x) for x in chunked_word_dictionary["w"]]
             chunked_word_dictionary["uid"] = [x for x in chunked_ds[chunk_id].uid]
             chunked_word_dictionary["lid"] = [x for x in chunked_ds[chunk_id].lid]
             chunked_word_dictionary["pid"] = [x for x in chunked_ds[chunk_id].pid]
@@ -123,12 +120,10 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             chunked_word_dictionary["words"] = words
             chunked_word_dictionary["iwords"] = iwords
             chunked_word_dictionary["wordcounts"] = wordcounts
-            start_char = [x[0] for x in chunked_word_dictionary["word_list"] if x]
-            end_char = [x[-1] for x in chunked_word_dictionary["word_list"] if x]
-            chunked_word_dictionary["cstart"] = [words[x] for x in start_char]
-            chunked_word_dictionary["cend"] = [words[x] for x in end_char]
-
-            ipdb.set_trace()
+            start_char = [x[0] for x in chunked_word_dictionary["w"] if x]
+            end_char = [x[-1] for x in chunked_word_dictionary["w"] if x]
+            chunked_word_dictionary["cstart"] = tokenizer.encode(start_char)
+            chunked_word_dictionary["cend"] = tokenizer.encode(end_char)
 
             for cp in tqdm(chunked_word_dictionary["pid"]):
                 if cp not in chunked_word_dictionary["lid"]:
@@ -139,7 +134,6 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
                     chunked_word_dictionary["p2c"].append(parent_id)
 
             chunked_word_dictionary["p2c"] = torch.ByteTensor(chunked_word_dictionary["p2c"])
-
 
             with open(os.path.join(f'./chunk{chunk_zero_fill}.pth'), mode='wb') as f:
                 torch.save(chunked_word_dictionary, f)
