@@ -8,6 +8,7 @@ from torchtext.vocab import Vectors
 import json
 import string
 import os
+import itertools
 
 from transformers import BertTokenizer
 import time
@@ -111,8 +112,11 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
 
             chunked_word_dictionary = {}
             word_list = [x for x in chunked_ds[chunk_id].w]
-            chunked_word_dictionary["w"] = torch.ByteTensor(list(flatten(word_list)))
+            sentence_len = [len(x) for x in chunked_ds[chunk_id].w]
+            chunked_word_dictionary["w"] = torch.ByteTensor(list(itertools.chain.from_iterable(word_list)))
             # chunked_word_dictionary["w"] = [x for x in chunked_ds[chunk_id].w]
+            chunked_word_dictionary["cend"] = torch.ByteTensor([sum(sentence_len[:i+1])-1 for i,x in enumerate(sentence_len)])
+            chunked_word_dictionary["cstart"] = torch.ByteTensor(chunked_word_dictionary["cend"] - torch.ByteTensor(sentence_len) + 1)
             chunked_word_dictionary["uid"] = [x for x in chunked_ds[chunk_id].uid]
             chunked_word_dictionary["lid"] = [x for x in chunked_ds[chunk_id].lid]
             chunked_word_dictionary["pid"] = [x for x in chunked_ds[chunk_id].pid]
@@ -120,8 +124,8 @@ def convert_raw_reddit_to_chunk_files(max_length=100):
             chunked_word_dictionary["words"] = words
             chunked_word_dictionary["iwords"] = iwords
             chunked_word_dictionary["wordcounts"] = wordcounts
-            chunked_word_dictionary["cstart"] = torch.ByteTensor([x[1] for x in word_list if x])
-            chunked_word_dictionary["cend"] = torch.ByteTensor([x[-2] for x in word_list if x])
+            # chunked_word_dictionary["cstart"] = torch.ByteTensor([x[1] for x in word_list if x])
+            # chunked_word_dictionary["cend"] = torch.ByteTensor([x[-2] for x in word_list if x])
             # start_char = [x[0] for x in chunked_word_dictionary["w"] if x]
             # end_char = [x[-1] for x in chunked_word_dictionary["w"] if x]
             # chunked_word_dictionary["cstart"] = tokenizer.encode(start_char)
