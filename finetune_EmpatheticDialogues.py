@@ -24,7 +24,8 @@ finetuned_model = TransformerAdapter(finetuned_opt, finetuned_word_dict)
 
 
 def create_finetune_model():
-
+    # First, stop the
+    return None
 
 
 

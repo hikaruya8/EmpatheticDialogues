@@ -14,6 +14,10 @@ from torch.utils.data import Dataset
 
 from empchat.datasets.tokens import BERT_ID, START_OF_COMMENT, UNK_TOKEN
 
+from sklearn import preprocessing
+
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class RedditDataset(Dataset):
     def __init__(
@@ -37,6 +41,7 @@ class RedditDataset(Dataset):
         self.ends = data["cend"]
         self.uids = data["uid"]
         self.p2c = data["p2c"]
+
         self.unk_index = self.dictionary[UNK_TOKEN]
         if "bert_tokenizer" in dict_:
             self.using_bert = True
@@ -53,6 +58,7 @@ class RedditDataset(Dataset):
                 [self.dictionary[START_OF_COMMENT]]
             )
         valid_comments = (self.uids != deleted_uid) * (self.p2c != -1)
+
         parent_ids = self.p2c.clamp(min=0)
         valid_comments *= (
             self.uids[parent_ids] != deleted_uid

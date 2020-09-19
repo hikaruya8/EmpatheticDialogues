@@ -26,6 +26,9 @@ def load_embeddings(opt, dictionary, model):
     with open(path) as f:
         for line in f:
             parsed = line.rstrip().split(" ")
+
+            # import ipdb;ipdb.set_trace()
+
             assert len(parsed) == opt.embeddings_size + 1
             w = parsed[0]
             if w in dictionary:

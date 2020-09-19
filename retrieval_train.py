@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 
 # Copyright (c) Facebook, Inc. and its affiliates.
@@ -246,6 +247,7 @@ def train_model(opt_):
             if opt_.stop_crit_num_epochs != -1:
                 if epoch - best_loss_epoch >= opt_.stop_crit_num_epochs:
                     break
+    torch.save(net.module.state_dict(), 'raw_model/finetune_model.pth')
     return net, dictionary
 
 
@@ -281,11 +283,8 @@ def main(opt_):
             validate(
                 0, net, test_data, is_test=True, nb_candidates=opt_.hits_at_nb_cands
             )
-        return net
     else:
         train_model(opt_)
-
-    # return net
 
 
 if __name__ == "__main__":
@@ -297,9 +296,4 @@ if __name__ == "__main__":
         torch.cuda.manual_seed(opt.random_seed)
     # Set logging
     logger = get_logger(opt)
-    # main(opt)
-
-    # 無理矢理model save
-    model = main(opt)
-    raw_model_path = './raw_model/bert.pth'
-    torch.save(model, raw_model_path)
+    main(opt)
